@@ -14,7 +14,7 @@ const connectionStr = `mongodb+srv://anna:${password}@fullstack.9qs6gkk.mongodb.
 mongoose.connect(connectionStr, {});
 const Person = mongoose.model('Person', PersonSchema);
 
-const correctPassword = '';
+const correctPassword = '.';
 
 if (password !== correctPassword) {
     console.log('Invalid password');
