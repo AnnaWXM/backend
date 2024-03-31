@@ -5,6 +5,9 @@ var morgan = require('morgan')
 
 var cors = require('cors')
 app.use(cors())
+app.use(express.json())
+
+const Person = require('./models/person')
 
 const mongoose = require('mongoose')
 
@@ -15,43 +18,24 @@ const PersonSchema = new mongoose.Schema({
 });
 
 const password = process.argv[2];
-const name = process.argv[3];
-const number = process.argv[4];
+
 // connect to the database
 const connectionStr = `mongodb+srv://anna:${password}@fullstack.9qs6gkk.mongodb.net/?retryWrites=true&w=majority&appName=FullStack`;
-mongoose.connect(connectionStr, {});
-const Person = mongoose.model('Person', PersonSchema);
-
+const url = connectionStr
+console.log('connecting to', url)
+mongoose.connect(url)
+    .then(result => {
+        console.log('connected to MongoDB')
+    })
+    .catch(error => {
+        console.log('error connecting to MongoDB:', error.message)
+    })
 
 morgan.token('req-body', (req, res) => {
     return JSON.stringify(req.body);
 });
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'));
-
-// useless after connect to mongodb
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
@@ -81,31 +65,38 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', async (request, response) => {
+    mongoose.connect(connectionStr, {})
     const body = request.body
+    console.log(request.body)
     if (!body.name || !body.number) {
         return response.status(400).json({
             error: 'name or number missing'
         })
     }
+    try {
+        // Check if the name already exists in the phonebook
+        const existingPerson = await Person.findOne({ name: body.name });
+        if (existingPerson) {
+            return response.status(400).json({
+                error: 'name must be unique'
+            });
+        }
 
-    // Check if the name already exists in the phonebook
-    const existingPerson = persons.find(person => person.name === body.name);
-    if (existingPerson) {
-        return response.status(400).json({
-            error: 'name must be unique'
+        const person = new Person({
+            _id: body.id,
+            name: body.name,
+            number: body.number
         });
+
+        person.save().then(savedPerson => {
+            response.json(savedPerson);
+        })
+
+    } catch (error) {
+        console.error('Error saving person:', error);
+        response.status(500).json({ error: 'Failed to save person' });
     }
-
-    const person = {
-        id: Math.floor(Math.random() * 1000) + 1,
-        name: body.name,
-        number: body.number
-    }
-
-    persons = persons.concat(person)
-
-    response.json(person)
 })
 
 app.get('/info', (request, response) => {

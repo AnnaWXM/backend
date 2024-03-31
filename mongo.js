@@ -15,7 +15,7 @@ mongoose.connect(connectionStr, {});
 const Person = mongoose.model('Person', PersonSchema);
 
 // No Password to github
-const correctPassword = 'Anna1998';
+const correctPassword = '.';
 
 if (password !== correctPassword) {
     console.log('Invalid password');
@@ -70,4 +70,9 @@ if (process.argv.length === 3) {
     fetchAllEntries();
 } else if (process.argv.length === 5) {
     addNewEntry();
+}
+
+module.exports = {
+    addNewEntry,
+    fetchAllEntries
 }
