@@ -42,11 +42,13 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', async (request, response) => {
-    mongoose.connect(connectionStr, {})
-    const persons = await Person.find({})
-    await persons
-    response.json(persons)
-
+    try {
+        const persons = await Person.find({})
+        await persons
+        response.json(persons)
+    } catch (error) {
+        next(error)
+    }
 })
 
 app.get('/api/persons/:id', (request, response) => {
@@ -61,11 +63,13 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', async (request, response) => {
     const id = request.params.id
-    console.log(id)
-    await Person.deleteOne({ _id: id })
-    const persons = await Person.find({})
-    console.log(persons)
-    response.status(204).json(persons)
+    try {
+        await Person.deleteOne({ _id: id })
+        const persons = await Person.find({})
+        response.status(204).json(persons)
+    } catch (error) {
+        next(error)
+    }
 })
 
 app.post('/api/persons', async (request, response) => {
@@ -98,7 +102,7 @@ app.post('/api/persons', async (request, response) => {
 
     } catch (error) {
         console.error('Error saving person:', error);
-        response.status(500).json({ error: 'Failed to save person' });
+        next(error)
     }
 })
 
@@ -108,6 +112,11 @@ app.get('/info', (request, response) => {
     let formatTime = currentTime.toDateString() + ' ' + currentTime.toTimeString()
     let message = `<p> Phonebook has info for ${len} people</p>` + `${formatTime}`
     response.send(message)
+})
+
+app.use((err, req, res, next) => {
+    console.error("Error: ", err)
+    res.status(500).json({ error: "Internal server error" })
 })
 
 const PORT = process.env.PORT || 3001
