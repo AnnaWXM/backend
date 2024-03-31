@@ -59,10 +59,13 @@ app.get('/api/persons/:id', (request, response) => {
     }
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-    response.status(204).end()
+app.delete('/api/persons/:id', async (request, response) => {
+    const id = request.params.id
+    console.log(id)
+    await Person.deleteOne({ _id: id })
+    const persons = await Person.find({})
+    console.log(persons)
+    response.status(204).json(persons)
 })
 
 app.post('/api/persons', async (request, response) => {
@@ -84,7 +87,7 @@ app.post('/api/persons', async (request, response) => {
         }
 
         const person = new Person({
-            _id: body.id,
+            _id: body._id,
             name: body.name,
             number: body.number
         });

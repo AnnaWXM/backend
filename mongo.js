@@ -15,7 +15,7 @@ mongoose.connect(connectionStr, {});
 const Person = mongoose.model('Person', PersonSchema);
 
 // No Password to github
-const correctPassword = '.';
+const correctPassword = 'Anna1998';
 
 if (password !== correctPassword) {
     console.log('Invalid password');
